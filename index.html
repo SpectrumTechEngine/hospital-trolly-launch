@@ -11,7 +11,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F4E6D8">
 <meta name="description" content="The All-Ireland Hospital Games patient launch final. Push the trolley, let go before the line, send the patient into the sand.">
-<!--MANIFEST-->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -227,6 +228,7 @@ input[type=text]{ font-family:var(--font); font-size:19px; font-weight:500; padd
     <p class="lede">The patient launch final. Push the trolley, let go before the foul line, and send your patient bouncing and sliding further down the sand than anyone in Irish healthcare history.</p>
     <div class="row" style="margin-top:0"><button class="primary" id="toSetup">Choose your hospital</button></div>
     <p class="small">Tap left and right, one after the other, to build speed. Let go as close to the foul line as you dare. Best played in landscape.</p>
+    <p class="small" style="margin-top:6px;opacity:.6;font-size:12px">Version 1.8</p>
   </div>
 </section>
 
@@ -1405,7 +1407,13 @@ function drawIcon(size){
       const m={ name:'Trolley Launch', short_name:'Trolley Launch', start_url:location.href, display:'standalone', orientation:'landscape', background_color:'#F4E6D8', theme_color:'#F4E6D8',
         icons:[{src:i192,sizes:'192x192',type:'image/png'},{src:i512,sizes:'512x512',type:'image/png',purpose:'any maskable'}] };
       add('manifest',URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'})));
-    } else if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+    }
+    // hosted copies: register the offline helper, check for updates, and reload once when a newer version takes over
+    if('serviceWorker' in navigator && location.protocol.startsWith('http') && !/claude|anthropic|usercontent/i.test(location.hostname)){
+      const hadSW=!!navigator.serviceWorker.controller; let reloaded=false;
+      navigator.serviceWorker.addEventListener('controllerchange',()=>{ if(hadSW && !reloaded){ reloaded=true; location.reload(); } });
+      navigator.serviceWorker.register('sw.js').then(reg=>reg.update()).catch(()=>{});
+    }
   }catch(e){}
 })();
 
