@@ -1,5 +1,5 @@
 // Trolley Launch service worker: always fetch the newest game when online, fall back to the saved copy offline.
-const C='trolley-launch-v8';
+const C='trolley-launch-v10';
 const FILES=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{ self.skipWaiting(); e.waitUntil(caches.open(C).then(c=>c.addAll(FILES)).catch(()=>{})); });
 self.addEventListener('activate',e=>{ e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim())); });
