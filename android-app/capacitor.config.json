@@ -1,0 +1,10 @@
+{
+  "appId": "com.thespectrumtechengine.trollylaunch",
+  "appName": "Trolly Launch",
+  "webDir": "www",
+  "backgroundColor": "#0f0c29",
+  "server": {
+    "url": "https://thespectrumtechengine.com/hospital-trolly-launch/",
+    "errorPath": "index.html"
+  }
+}
