@@ -1,0 +1,9 @@
+{
+  "groan": ["groan-1.mp3", "groan-2.mp3"],
+  "heh": ["heh-1.mp3", "heh-2.mp3"],
+  "hup": ["hup-1.mp3", "hup-2.mp3", "hup-3.mp3"],
+  "land": ["land-1.mp3", "land-2.mp3", "land-3.mp3", "land-4.mp3", "land-5.mp3"],
+  "top": ["top-1.mp3", "top-2.mp3"],
+  "wheee": ["wheee-1.mp3", "wheee-2.mp3"],
+  "whoa": ["whoa-1.mp3", "whoa-2.mp3"]
+}

@@ -75,6 +75,7 @@ button:focus-visible,.btn:focus-visible,input:focus-visible{ outline:3px solid v
 #pad .go{ background:var(--coral); box-shadow:0 6px 0 var(--coral-d),var(--shadow); }
 #pad .go.dn{ box-shadow:0 2px 0 var(--coral-d); }
 #pad .go.hot{ background:var(--butter); color:var(--ink); box-shadow:0 6px 0 #C9A13F,var(--shadow); animation:hot .3s infinite alternate; }
+#adult{ position:absolute; top:calc(env(safe-area-inset-top,0px) + 12px); left:calc(env(safe-area-inset-left,0px) + 264px); pointer-events:auto; border:0; width:40px; height:36px; font-size:16px; }
 #music{ position:absolute; top:calc(env(safe-area-inset-top,0px) + 12px); left:calc(env(safe-area-inset-left,0px) + 218px); pointer-events:auto; border:0; width:40px; height:36px; font-size:16px; }
 /* phones and tablets: a Let go button above each push button, so either hand can release */
 @media (hover:none) and (pointer:coarse){
@@ -155,7 +156,8 @@ input[type=text]{ font-family:var(--font); font-size:19px; font-weight:500; padd
 @media (max-width:620px){ #result{ justify-content:center; } .res-stats{ grid-template-columns:1fr; }
   #ticker{ max-width:calc(100vw - 24px); top:calc(env(safe-area-inset-top,0px) + 108px); }
   .board{ top:calc(env(safe-area-inset-top,0px) + 58px); left:calc(env(safe-area-inset-left,0px) + 12px); right:auto; max-width:calc(100vw - 24px); }
-  #mute{ left:auto; right:calc(env(safe-area-inset-right,0px) + 12px); } }
+  #mute{ left:auto; right:calc(env(safe-area-inset-right,0px) + 12px); }
+  #adult{ left:auto; right:calc(env(safe-area-inset-right,0px) + 58px); } }
 @media (max-height:480px){
   .panel{ padding:16px 20px; } h1{ font-size:clamp(38px,7vw,58px); } .lede{ margin:8px 0 12px; }
   .res-dist{ font-size:56px !important; } .res-line{ margin:4px 0 8px; font-size:15px; } .card b{ font-size:24px; } .card{ width:58px; padding:5px 0 4px; }
@@ -213,6 +215,7 @@ input[type=text]{ font-family:var(--font); font-size:19px; font-weight:500; padd
   <div class="board pill"><div class="crest" id="hCrest"></div><div class="txt"><div class="nm" id="hName"></div><div class="sub"><span>Best <b id="hBest">–</b></span><span>Wind <b id="hWind">0.0</b></span></div></div></div>
   <button id="mute" class="pill" aria-label="Mute sound">🔊</button>
   <button id="music" class="pill" aria-label="Turn music off">🎵</button>
+  <button id="adult" class="pill" aria-label="Turn on Over-18s mode (strong language)">🔞</button>
   <div id="hint" class="pill"></div>
   <div id="banner" aria-live="assertive"></div>
   <div id="pops" aria-live="polite"></div>
@@ -291,29 +294,18 @@ input[type=text]{ font-family:var(--font); font-size:19px; font-weight:500; padd
 'use strict';
 /* ================= data ================= */
 const HOSPITALS = [
-  ['CHB','Connolly Hospital Blanchardstown','#2E8B6A','#F2C14E'],
-  ['BMT','Beaumont Hospital','#7A4F8C','#EDE3F0'],
-  ['MAT','Mater Misericordiae University Hospital','#3B4F7A','#E8766B'],
-  ['SJH',"St James's Hospital",'#A6464A','#EADBB4'],
-  ['TUH','Tallaght University Hospital','#2F7586','#A8D8C8'],
-  ['SVU',"St Vincent's University Hospital",'#5A6B3E','#E0B176'],
-  ['OLD','Our Lady of Lourdes Hospital, Drogheda','#4F7FD6','#FFFFFF'],
-  ['NAV',"Our Lady's Hospital, Navan",'#3AA597','#F4E98A'],
-  ['CUH','Cork University Hospital','#C84B4B','#FFFFFF'],
-  ['UHL','University Hospital Limerick','#3563A8','#A6DCEA'],
-  ['UHG','University Hospital Galway','#8A3A55','#FFFFFF'],
-  ['UHW','University Hospital Waterford','#39465A','#E0E1DD'],
-  ['LUH','Letterkenny University Hospital','#4C9A5E','#F2D35A'],
-  ['SUH','Sligo University Hospital','#3E3E48','#FFFFFF'],
-  ['MUH','Mayo University Hospital','#3D8A4F','#D9524A'],
-  ['TUL','Midland Regional Hospital Tullamore','#5D6180','#EFE7E2'],
-  ['SLK',"St Luke's General Hospital, Kilkenny",'#34343C','#EDB443'],
-  ['UHK','University Hospital Kerry','#2F7D55','#F2D25A'],
-  ['CAV','Cavan General Hospital','#3A62B4','#FFFFFF'],
-  ['WEX','Wexford General Hospital','#7D4A73','#F0CD5C'],
+  ['IDM',"It Doesn't Mater",'#3B4F7A','#E8766B'],
+  ['SJG',"St James's Gate Hospital",'#A6464A','#EADBB4'],
+  ['SVC',"St Vacant's",'#5A6B3E','#E0B176'],
+  ['CBL','C Blanchetstown','#2E8B6A','#F2C14E'],
+  ['SLO','Slowmont Hospital','#7A4F8C','#EDE3F0'],
+  ['BAC','The Bacon Hospital','#D9837A','#F5E6CC'],
 ];
+// Old codes and names (the real hospitals) from earlier versions, so saved picks and bests carry over
+const OLD_CODES={CHB:'CBL',BMT:'SLO',MAT:'IDM',SJH:'SJG',SVU:'SVC'};
+const OLD_NAMES={'Connolly Hospital Blanchardstown':'CBL','Beaumont Hospital':'SLO','Mater Misericordiae University Hospital':'IDM',"St James's Hospital":'SJG',"St Vincent's University Hospital":'SVC'};
 const SCRUBS = [['Ceil blue','#86AFD9'],['Navy','#3E5580'],['Theatre green','#5FA88A'],['White','#F1F3F5'],['Wine','#9A4A63'],['Teal','#3E9C9A'],['Pink','#E7A1BE'],['Charcoal','#4A4A56']];
-const BASE_RECORD = { d:146.20, team:'Beaumont Hospital', year:'1987, disputed' };
+const BASE_RECORD = { d:146.20, team:'Slowmont Hospital', year:'1987, disputed' };
 const PATIENTS=['Mr Séamus O\u2019Flynn','Mr Tadhg Brennan','Mr Noel Fitzgerald','Mr Paddy Kinsella','Mr Christy Doyle','Mr Liam Dunne','Mr Dermot Kavanagh','Mr Mick Tierney','Mr Fergal Nolan','Mr Brendan Coughlan'];
 const ADMITS=['an ingrown toenail','a small splinter','routine bloods','a suspicious mole (it was a raisin)','a sore elbow from playing darts','a follow-up about his follow-up','a tetanus booster','hiccups (three days)','a mild toothache','a blocked nose','a paper cut','a bit of wax in his left ear','an eyelash in his eye','a stubbed toe','a flu jab','a sore throat from shouting at the telly','a routine blood pressure check','a verruca','a nosebleed that had already stopped','a crick in his neck'];
 
@@ -321,7 +313,13 @@ const store = {
   get(k,d){ try{ const v=localStorage.getItem('tl_'+k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
   set(k,v){ try{ localStorage.setItem('tl_'+k, JSON.stringify(v)); }catch(e){} }
 };
-let teamCode = store.get('team','CHB');
+(function moveOldHospitals(){
+  for(const [o,n] of Object.entries(OLD_CODES)){ const b=store.get('best4_'+o,null); if(b!==null && store.get('best4_'+n,null)===null) store.set('best4_'+n,b); }
+  const t=store.get('team',null); if(t && !HOSPITALS.some(h=>h[0]===t)) store.set('team',OLD_CODES[t]||'CBL');
+  const r=store.get('record4',null);
+  if(r && r.team && !HOSPITALS.some(h=>h[1]===r.team)){ const c=OLD_NAMES[r.team]||store.get('team','CBL'); r.team=(HOSPITALS.find(h=>h[0]===c)||HOSPITALS[3])[1]; store.set('record4',r); }
+})();
+let teamCode = store.get('team','CBL');
 let scrub = store.get('scrub2','#86AFD9');
 let pname = store.get('name','Aoife');
 const team = () => HOSPITALS.find(h=>h[0]===teamCode) || HOSPITALS[0];
@@ -437,6 +435,7 @@ function audioInit(){
     master=AC.createGain(); master.gain.value=muted?0:0.8; const comp=AC.createDynamicsCompressor(); comp.threshold.value=-12; comp.knee.value=12; comp.ratio.value=4; comp.attack.value=.004; comp.release.value=.2; master.connect(comp); comp.connect(AC.destination);
     noiseBuf=AC.createBuffer(1,AC.sampleRate*2,AC.sampleRate); const d=noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
     startMusic();
+    if(adult) loadRecordings();
   }catch(e){ AC=null; }
 }
 function tone(f,dur,type,vol,f2,delay,dest){ if(!AC) return; const t=AC.currentTime+(delay||0); const o=AC.createOscillator(), g=AC.createGain();
@@ -584,6 +583,46 @@ const VOICE={
   groan:()=>pv([{v:'u',f:140,f2:115,d:.55},{v:'o',f2:95,d:.55}],.7,true),
   heh:()=>{ [0,180,360].forEach((ms,i)=>setTimeout(()=>{ noise(.035,1300,.025,'bandpass'); pv([{v:'e',f:180-i*10,f2:170-i*12,d:.1}],.55,true); },ms)); },
 };
+/* ---- Over-18s mode: the patient's recorded voice (strong language) replaces the made-up one ----
+   sounds/18/sounds.json lists the files for each moment, for example:
+     { "land": ["land-1.mp3", "land-2.mp3"], "whoa": ["whoa-1.mp3"] }
+   Moments: whoa (launch), top (top of the flight), land (hitting the ground), hup (small bump),
+   wheee (sliding), groan and heh (coming to a stop). Several files = one picked at random.
+   Any moment without a file keeps the made-up voice above. Off by default. */
+let adult=store.get('adult',false), recLoading=false;
+const REC={}, lastRec={};
+async function loadRecordings(){
+  if(recLoading||!AC) return; recLoading=true;
+  let list; try{ list=await (await fetch('sounds/18/sounds.json',{cache:'no-cache'})).json(); }catch(e){ recLoading=false; return; }
+  for(const [slot,files] of Object.entries(list)){
+    const bufs=await Promise.all([].concat(files).map(async f=>{
+      try{ return tidyRecording(await AC.decodeAudioData(await (await fetch('sounds/18/'+f)).arrayBuffer())); }catch(e){ return null; } }));
+    if(bufs.some(Boolean)) REC[slot]=bufs.filter(Boolean);
+  }
+}
+// Cut the silence off both ends and even out the volume, so no editing is needed after recording
+function tidyRecording(b){
+  const d=b.getChannelData(0); let peak=0; for(let i=0;i<d.length;i++) peak=Math.max(peak,Math.abs(d[i]));
+  if(peak<.001) return null;
+  const th=peak*.06; let s=0, e=d.length-1;
+  while(s<e && Math.abs(d[s])<th) s++; while(e>s && Math.abs(d[e])<th) e--;
+  s=Math.max(0,s-Math.round(b.sampleRate*.015)); e=Math.min(d.length-1,e+Math.round(b.sampleRate*.08));
+  const out=AC.createBuffer(b.numberOfChannels,e-s+1,b.sampleRate), gain=.9/peak;
+  for(let c=0;c<b.numberOfChannels;c++){ const src=b.getChannelData(c).subarray(s,e+1), dst=out.getChannelData(c); for(let i=0;i<src.length;i++) dst[i]=src[i]*gain; }
+  return out;
+}
+let recNode=null;
+function playRec(slot,force){
+  const bufs=REC[slot]; if(!adult||!bufs||!AC) return false;
+  if(!force && AC.currentTime<voiceUntil) return true; // don't talk over a bigger reaction
+  let i=Math.floor(Math.random()*bufs.length); if(bufs.length>1 && i===lastRec[slot]) i=(i+1)%bufs.length; lastRec[slot]=i;
+  try{ recNode&&recNode.stop(); }catch(e){}
+  const s=AC.createBufferSource(); s.buffer=bufs[i]; s.connect(master); s.start(); recNode=s;
+  voiceUntil=AC.currentTime+bufs[i].duration; return true;
+}
+const REC_SLOT={whoa:'whoa',eee:'top',ohoh:'top',uh:'land',oof:'land',hah:'land',hup:'hup',wheee:'wheee',groan:'groan',heh:'heh'};
+for(const k of Object.keys(REC_SLOT)){ const madeUp=VOICE[k]; VOICE[k]=()=>{ if(!playRec(REC_SLOT[k],k!=='hup')) madeUp(); }; }
+function setAdult(on){ adult=on; store.set('adult',on); const b=$('#adult'); b.style.opacity=on?1:.45; b.setAttribute('aria-pressed',on); b.setAttribute('aria-label',on?'Over-18s mode is on. Turn it off':'Turn on Over-18s mode (strong language)'); if(on) loadRecordings(); }
 function crowdSwell(){} function crowd(){}
 // synthesised crowd voices: "wooo" cheers, "booo" jeers, "ooooh" gasps (no background hiss)
 function crowdVoice(kind,size){
@@ -1373,10 +1412,14 @@ window.addEventListener('keydown',e=>{
 });
 $('#mute').addEventListener('click',()=>{ audioInit(); setMute(!muted); });
 $('#music').addEventListener('click',()=>{ audioInit(); setMusic(!musicOn); });
-setMute(muted); setMusic(musicOn);
+$('#adult').addEventListener('click',()=>{
+  if(adult){ setAdult(false); return; }
+  if(confirm('Over-18s mode: the patient swears. Strong language.\n\nAre you 18 or over?')){ audioInit(); setAdult(true); }
+});
+setMute(muted); setMusic(musicOn); setAdult(adult);
 function buildSetup(){
   const tw=$('#teams'); tw.innerHTML='';
-  HOSPITALS.forEach(h=>{ const b=document.createElement('button'); b.className='team'+(h[0]==='CHB'?' star':''); b.type='button';
+  HOSPITALS.forEach(h=>{ const b=document.createElement('button'); b.className='team'+(h[0]==='CBL'?' star':''); b.type='button';
     b.innerHTML=`<span class="chip" style="background:linear-gradient(135deg, ${h[2]} 55%, ${h[3]} 55%)"></span><span>${h[1]}</span>`;
     b.setAttribute('aria-pressed',h[0]===teamCode); b.onclick=()=>{ teamCode=h[0]; store.set('team',teamCode); tw.querySelectorAll('.team').forEach(x=>x.setAttribute('aria-pressed',x===b)); };
     tw.appendChild(b); });
